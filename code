@@ -1,0 +1,914 @@
+<!DOCTYPE html> 
+<html lang="es"> 
+<head> 
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Ecuaciones Lineales - Solucionador Interactivo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 95%;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            padding: 30px;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .input-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .input-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102,126,234,0.3);
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .canvas-container {
+            background: white;
+            border-radius: 10px;
+            overflow: auto;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            max-height: 500px;
+            position: relative;
+        }
+
+        canvas {
+            display: block;
+            margin: 0;
+            background: white;
+            cursor: pointer;
+        }
+
+        .info-panel {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .controls-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .control-card {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .control-card h4 {
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .control-card p {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .status {
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            color: #1976d2;
+            font-weight: 600;
+        }
+
+        .results {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .results h3 {
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .result-item {
+            background: rgba(255,255,255,0.2);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        
+        .quick-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 5px;
+            flex-wrap: wrap;
+        }
+        
+        .quick-btn {
+            background: #e0e0e0;
+            color: #333;
+            padding: 5px 10px;
+            font-size: 12px;
+            border-radius: 5px;
+        }
+        
+        .quick-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .nav-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            justify-content: center;
+        }
+
+        .nav-btn {
+            padding: 5px 15px;
+            font-size: 14px;
+        }
+
+        .size-indicator {
+            text-align: center;
+            margin-top: 10px;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+    <script>
+        var total = 0;
+        var cuna = 0;
+        var cuadro_x = 1;
+        var cuadro_y = 1;
+        var flag_drive = 0;
+        var permiso = false;
+        var flag_decimal = false;
+        var pin = 0;
+        var pot = 0;
+        var ratonx = 0;
+        var ratony = 0;
+        var flecha_x = 0;
+        var flecha_y = 0;
+        var acumulado = 0;
+        var signo = 1;
+        var n = 1;
+        var abc = new Array();
+        abc = " XYZWVUTSRQPONMLKJIHGFEDCBA";
+        var boleto = true;
+        var respuestas = new Array();
+        var vector1 = new Array();
+        var vector2 = new Array();
+        var vector3 = new Array();
+
+        for (i = 1; i <= 50; i++) {
+            vector3[i] = new Array();
+        }
+
+        var t = 0;
+        var inter = 0;
+        var cramer = new Array();
+
+        for (i = 0; i <= 100; i++) {
+            cramer[i] = new Array();
+        }
+
+        for (i = 0; i <= 100; i++) {
+            for (j = 0; j <= 100; j++) {
+                cramer[j][i] = 0;
+            }
+        }
+
+        var reflejo = new Array();
+        for (i = 0; i <= 100; i++) {
+            reflejo[i] = new Array();
+        }
+
+        var lienzo;
+        var ctx;
+        var offsetX = 0;
+        var offsetY = 0;
+        var canvasWidth = 0;
+        var canvasHeight = 0;
+
+        function iniciar() {
+            var elemento = document.getElementById('lienzo');
+            ctx = elemento.getContext('2d');
+            ctx.font = "bold 16px 'Segoe UI', sans-serif";
+            
+            var boton = document.getElementById('enviar');
+            boton.addEventListener('click', binarSearch, false);
+            
+            var cal = document.getElementById('procesar');
+            cal.addEventListener('click', calcula_ecuacion, false);
+            
+            window.addEventListener('mousemove', puntero, false);
+            window.addEventListener('keydown', teclado, false);
+            
+            var PARK = document.getElementById('lienzo');
+            PARK.addEventListener('click', grabanota, false);
+            
+            // Agregar evento de scroll para navegación con teclas
+            window.addEventListener('keydown', manejarScroll, false);
+            
+            var textoInput = document.getElementById('texto');
+            textoInput.addEventListener('keypress', function(event) {
+                if (event.key === 'Enter') {
+                    binarSearch();
+                }
+            });
+            
+            mostrar();
+        }
+        
+        function manejarScroll(event) {
+            if (total === 0) return;
+            
+            var container = document.querySelector('.canvas-container');
+            
+            // Scroll con Shift + flechas
+            if (event.shiftKey) {
+                if (event.key === 'ArrowRight') {
+                    container.scrollLeft += 50;
+                    event.preventDefault();
+                } else if (event.key === 'ArrowLeft') {
+                    container.scrollLeft -= 50;
+                    event.preventDefault();
+                } else if (event.key === 'ArrowDown') {
+                    container.scrollTop += 50;
+                    event.preventDefault();
+                } else if (event.key === 'ArrowUp') {
+                    container.scrollTop -= 50;
+                    event.preventDefault();
+                }
+            }
+            
+            // Scroll automático para seguir la celda seleccionada
+            if (cuadro_y > 0 && cuadro_x > 0) {
+                var cellX = 70 + 50 * cuadro_x;
+                var cellY = 35 + 30 * cuadro_y;
+                
+                if (cellX < container.scrollLeft) {
+                    container.scrollLeft = cellX - 20;
+                } else if (cellX + 40 > container.scrollLeft + container.clientWidth) {
+                    container.scrollLeft = cellX + 40 - container.clientWidth + 20;
+                }
+                
+                if (cellY < container.scrollTop) {
+                    container.scrollTop = cellY - 20;
+                } else if (cellY + 24 > container.scrollTop + container.clientHeight) {
+                    container.scrollTop = cellY + 24 - container.clientHeight + 20;
+                }
+            }
+        }
+
+        function binarSearch() {
+            var input = document.getElementById('texto');
+            total = parseInt(input.value);
+            
+            if (isNaN(total) || total < 1 || total > 26) {
+                mostrarError("Por favor ingrese un número válido entre 1 y 26");
+                return;
+            }
+            
+            // Limpiar matrices
+            for (i = 0; i <= 100; i++) {
+                for (j = 0; j <= 100; j++) {
+                    cramer[j][i] = 0;
+                }
+            }
+            
+            cuadro_x = 1;
+            cuadro_y = 1;
+            cuna = 0;
+            pin = 0;
+            boleto = true;
+            
+            // Calcular tamaño del canvas
+            canvasWidth = Math.max(680, 70 + 50 * (total + 2));
+            canvasHeight = Math.max(400, 35 + 30 * (total + 2));
+            
+            var canvas = document.getElementById('lienzo');
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
+            
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('errorMsg').classList.remove('show');
+            
+            mostrar();
+            
+            input.value = total;
+        }
+        
+        function setSize(size) {
+            document.getElementById('texto').value = size;
+            binarSearch();
+        }
+        
+        function scrollToCell() {
+            var container = document.querySelector('.canvas-container');
+            var cellX = 70 + 50 * cuadro_x;
+            var cellY = 35 + 30 * cuadro_y;
+            
+            container.scrollLeft = Math.max(0, cellX - container.clientWidth / 2);
+            container.scrollTop = Math.max(0, cellY - container.clientHeight / 2);
+        }
+
+        function mostrar() {
+            if (!ctx) return;
+            
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+            
+            // Título del sistema
+            ctx.fillStyle = "#333";
+            ctx.font = "bold 18px 'Segoe UI', sans-serif";
+            ctx.fillText(`SISTEMA DE ${total} ECUACIONES`, canvasWidth/2 - 100, 25);
+            
+            // Si no hay sistema definido, mostrar mensaje
+            if (total === 0) {
+                ctx.fillStyle = "#999";
+                ctx.font = "16px 'Segoe UI', sans-serif";
+                ctx.fillText("Ingrese el número de ecuaciones en el panel superior", canvasWidth/2 - 200, canvasHeight/2);
+                return;
+            }
+            
+            // Dibujar encabezados de columnas
+            ctx.font = "bold 14px 'Segoe UI', sans-serif";
+            ctx.fillStyle = "#667eea";
+            for (j = 1; j <= total + 1; j++) {
+                if (j <= total) {
+                    ctx.fillText(abc[j], 85 + 50 * j, 30);
+                } else {
+                    ctx.fillText("=", 90 + 50 * j, 30);
+                }
+            }
+            
+            // Dibujar tabla
+            ctx.font = "16px 'Segoe UI', sans-serif";
+            ctx.fillStyle = "#555";
+            
+            for (i = 1; i <= total; i++) {
+                // Número de ecuación
+                ctx.fillStyle = "#667eea";
+                ctx.font = "bold 14px 'Segoe UI', sans-serif";
+                ctx.fillText(`${i}`, 55, 55 + 30 * i);
+                
+                ctx.font = "16px 'Segoe UI', sans-serif";
+                for (j = 1; j <= total; j++) {
+                    let valor = cramer[j][i];
+                    let texto = (valor === 0 && Math.abs(valor) < 0.0001) ? "0" : valor.toString();
+                    if (texto.length > 6) texto = texto.substring(0, 6);
+                    ctx.fillStyle = "#333";
+                    ctx.fillText(texto, 80 + 50 * j, 50 + 30 * i);
+                }
+                ctx.fillStyle = "#667eea";
+                let termValue = (cramer[total + 1][i] || 0);
+                let termText = (termValue === 0 && Math.abs(termValue) < 0.0001) ? "0" : termValue.toString();
+                if (termText.length > 6) termText = termText.substring(0, 6);
+                ctx.fillText(termText, 80 + 50 * (total + 1), 50 + 30 * i);
+            }
+            
+            // Dibujar bordes de la tabla
+            ctx.strokeStyle = "#ddd";
+            ctx.lineWidth = 1;
+            for (i = 1; i <= total; i++) {
+                for (j = 1; j <= total + 1; j++) {
+                    ctx.strokeRect(70 + 50 * j, 35 + 30 * i, 45, 24);
+                }
+            }
+            
+            // Resaltar celda seleccionada
+            if (cuadro_y <= total && cuadro_x <= total + 1 && cuadro_y >= 1 && cuadro_x >= 1) {
+                ctx.strokeStyle = "#ff6b6b";
+                ctx.lineWidth = 3;
+                ctx.strokeRect(70 + 50 * cuadro_x, 35 + 30 * cuadro_y, 45, 24);
+                
+                // Efecto de resplandor
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = "#667eea";
+                ctx.strokeRect(70 + 50 * cuadro_x, 35 + 30 * cuadro_y, 45, 24);
+                ctx.shadowBlur = 0;
+            }
+            
+            // Mostrar valor ingresando
+            if (pin >= 1 && cuadro_y <= total && cuadro_x <= total + 1 && cuadro_y >= 1 && cuadro_x >= 1) {
+                ctx.fillStyle = "#667eea";
+                ctx.fillRect(71 + 50 * cuadro_x, 36 + 30 * cuadro_y, 43, 22);
+                ctx.fillStyle = "white";
+                ctx.font = "bold 14px 'Segoe UI', sans-serif";
+                let textoMostrar = cuna.toString();
+                if (textoMostrar.length > 8) textoMostrar = textoMostrar.substring(0, 8);
+                ctx.fillText(textoMostrar, 76 + 50 * cuadro_x, 55 + 30 * cuadro_y);
+            }
+            
+            // Información de posición
+            if (total > 0) {
+                ctx.fillStyle = "#999";
+                ctx.font = "12px 'Segoe UI', sans-serif";
+                ctx.fillText(`Celda: (${cuadro_x}, ${cuadro_y}) | Variable: ${cuadro_x <= total ? abc[cuadro_x] : 'Término independiente'}`, 15, canvasHeight - 25);
+                ctx.fillText(`Valor actual: ${cuna}`, 15, canvasHeight - 10);
+            }
+        }
+
+        function puntero(e) {
+            if (total === 0) return;
+            var rect = document.getElementById('lienzo').getBoundingClientRect();
+            var container = document.querySelector('.canvas-container');
+            ratonx = e.clientX - rect.left + container.scrollLeft;
+            ratony = e.clientY - rect.top + container.scrollTop;
+            calculpos();
+            mostrar();
+        }
+
+        function calculpos() {
+            if (total === 0) return;
+            flecha_x = Math.max(1, Math.min(total + 1, Math.floor((ratonx - 70) / 50) + 1));
+            
+            for (var i = 1; i <= total; i++) {
+                if (ratony >= 35 + 30 * i && ratony <= 65 + 30 * i) {
+                    flecha_y = i;
+                    break;
+                }
+            }
+        }
+
+        function grabanota() {
+            if (total === 0) return;
+            if (flecha_x >= 1 && flecha_x <= total + 1 && flecha_y >= 1 && flecha_y <= total) {
+                cuadro_x = flecha_x;
+                cuadro_y = flecha_y;
+                mostrar();
+                manejarScroll({shiftKey: false, key: null});
+            }
+        }
+
+        function ajuste() {
+            pot = 0;
+            flag_decimal = false;
+            permiso = false;
+            
+            if (cuadro_y <= total && cuadro_x <= total + 1 && cuadro_y >= 1 && cuadro_x >= 1) {
+                permiso = true;
+            }
+            
+            if (pin >= 1 && permiso == true) {
+                cramer[cuadro_x][cuadro_y] = cuna;
+                pin = 0;
+                mostrar();
+            }
+        }
+
+        function teclado(event) {
+            if (total === 0) return;
+            
+            var keyValue = event.key;
+            var codeValue = event.code;
+            
+            // Navegación
+            if (codeValue == 'ArrowRight') {
+                ajuste();
+                cuna = 0;
+                if (cuadro_x < total + 1) {
+                    cuadro_x++;
+                }
+                flag_drive = 1;
+                signo = 1;
+                mostrar();
+                manejarScroll(event);
+                event.preventDefault();
+            }
+            else if (codeValue == 'ArrowLeft') {
+                ajuste();
+                cuna = 0;
+                if (cuadro_x > 1) {
+                    cuadro_x--;
+                }
+                flag_drive = 1;
+                signo = 1;
+                mostrar();
+                manejarScroll(event);
+                event.preventDefault();
+            }
+            else if (codeValue == 'ArrowUp') {
+                ajuste();
+                cuna = 0;
+                if (cuadro_y > 1) {
+                    cuadro_y--;
+                }
+                flag_drive = 1;
+                signo = 1;
+                mostrar();
+                manejarScroll(event);
+                event.preventDefault();
+            }
+            else if (codeValue == 'ArrowDown') {
+                ajuste();
+                cuna = 0;
+                if (cuadro_y < total) {
+                    cuadro_y++;
+                }
+                flag_drive = 1;
+                signo = 1;
+                mostrar();
+                manejarScroll(event);
+                event.preventDefault();
+            }
+            else if (codeValue == 'Enter' || codeValue == 'NumpadEnter') {
+                if (pin > 1) {
+                    ajuste();
+                    cuna = 0;
+                }
+                pin = 0;
+                flag_drive = 1;
+                if (cuadro_y < total) {
+                    cuadro_y++;
+                } else if (cuadro_y == total && cuadro_x < total + 1) {
+                    cuadro_x++;
+                    cuadro_y = 1;
+                } else if (cuadro_x == total + 1 && cuadro_y == total) {
+                    // Llegó al final, volver al inicio
+                    cuadro_x = 1;
+                    cuadro_y = 1;
+                }
+                signo = 1;
+                mostrar();
+                manejarScroll(event);
+                event.preventDefault();
+            }
+            else if (codeValue == 'NumpadDecimal' || keyValue == '.') {
+                flag_decimal = true;
+                event.preventDefault();
+            }
+            else if (codeValue == 'NumpadSubtract' || keyValue == '-') {
+                signo = -signo;
+                cuna = -cuna;
+                mostrar();
+                event.preventDefault();
+            }
+            else if (codeValue == 'Backspace') {
+                if (pin > 0) {
+                    cuna = Math.floor(Math.abs(cuna) / 10) * signo;
+                    if (Math.abs(cuna) < 1 && pin > 1) pin--;
+                    mostrar();
+                }
+                event.preventDefault();
+            }
+            // Entrada numérica
+            else if (flag_drive == 0 && /^[0-9]$/.test(keyValue)) {
+                if (flag_decimal == false) {
+                    cuna = Math.abs(cuna * 10) + parseInt(keyValue);
+                } else {
+                    pot++;
+                    cuna = Math.abs(cuna) + parseInt(keyValue) / Math.pow(10, pot);
+                }
+                cuna = cuna * Math.sign(signo);
+                if (Math.abs(cuna) < 0.0001 && cuna !== 0) cuna = 0;
+                pin++;
+                mostrar();
+                event.preventDefault();
+            }
+            
+            if (flag_drive == 1) {
+                flag_drive = 0;
+                cuna = 0;
+                mostrar();
+            }
+        }
+
+        function transcribe() {
+            for (i = 1; i <= total; i++) {
+                for (j = 1; j <= total + 1; j++) {
+                    reflejo[j][i] = cramer[j][i];
+                }
+            }
+        }
+
+        function revisar() {
+            var apunte = new Array();
+            var suma = 0;
+            boleto = true;
+            
+            for (i = 1; i <= total - 1; i++) {
+                for (j = i + 1; j <= total; j++) {
+                    for (k = 1; k <= total; k++) {
+                        if (cramer[k][j] !== 0) {
+                            apunte[k] = cramer[k][i] / cramer[k][j];
+                        } else {
+                            apunte[k] = cramer[k][i];
+                        }
+                    }
+                    suma = 0;
+                    for (k = 2; k <= total; k++) {
+                        if (Math.abs(apunte[k] - apunte[k - 1]) < 0.0001) {
+                            suma++;
+                        }
+                    }
+                    if (suma == total - 1) {
+                        mostrarError("Error: Ecuaciones repetidas o proporcionales");
+                        boleto = false;
+                        return;
+                    }
+                }
+            }
+        }
+
+        function non_cero() {
+            if (reflejo[1][1] == 0) {
+                n = 1;
+                do {
+                    n++;
+                } while ((reflejo[1][n] == 0) && (n <= total));
+                
+                if (n <= inter) {
+                    for (i = 1; i <= inter + 1; i++) {
+                        vector1[i] = reflejo[i][1];
+                        vector2[i] = reflejo[i][n];
+                    }
+                    for (i = 1; i <= inter + 1; i++) {
+                        reflejo[i][1] = vector2[i];
+                        reflejo[i][n] = vector1[i];
+                    }
+                } else {
+                    boleto = false;
+                    mostrarError("El sistema no tiene solución única");
+                }
+            }
+            return boleto;
+        }
+
+        function cambiar() {
+            transcribe();
+            for (i = 1; i <= total; i++) {
+                vector1[i] = reflejo[total][i];
+                vector2[i] = reflejo[total - t][i];
+            }
+            for (i = 1; i <= total; i++) {
+                reflejo[total][i] = vector2[i];
+                reflejo[total - t][i] = vector1[i];
+            }
+            inter = parseInt(total);
+        }
+
+        function mostrarError(mensaje) {
+            var errorDiv = document.getElementById('errorMsg');
+            errorDiv.textContent = mensaje;
+            errorDiv.classList.add('show');
+            setTimeout(() => {
+                errorDiv.classList.remove('show');
+            }, 5000);
+        }
+
+        function calcula_ecuacion() {
+            if (total === 0) {
+                mostrarError("Primero ingrese el número de ecuaciones");
+                return;
+            }
+            
+            revisar();
+            inter = parseInt(total);
+            t = 0;
+            transcribe();
+            
+            if (boleto == true) {
+                for (k = 1; k <= parseInt(total); k++) {
+                    t++;
+                    do {
+                        non_cero();
+                        for (i = 2; i <= inter; i++) {
+                            for (j = 1; j <= inter + 1; j++) {
+                                vector1[j] = reflejo[j][1] * reflejo[1][i];
+                                vector2[j] = reflejo[j][i] * reflejo[1][1];
+                                if (j > 1) {
+                                    vector3[j - 1][i] = vector1[j] - vector2[j];
+                                }
+                            }
+                        }
+                        inter = inter - 1;
+                        for (i = 1; i <= inter; i++) {
+                            for (j = 1; j <= inter + 1; j++) {
+                                reflejo[j][i] = parseFloat(vector3[j][i + 1]);
+                            }
+                        }
+                    } while (inter >= 2);
+                    
+                    respuestas[total + 1 - t] = reflejo[2][1] / reflejo[1][1];
+                    cambiar();
+                }
+                
+                // Mostrar resultados
+                var resultsDiv = document.getElementById('results');
+                var resultsContent = document.getElementById('resultsContent');
+                resultsContent.innerHTML = '';
+                
+                for (i = 1; i <= total; i++) {
+                    var value = respuestas[i];
+                    if (isNaN(value) || !isFinite(value)) {
+                        resultsContent.innerHTML = '<div class="result-item">No hay solución única</div>';
+                        break;
+                    }
+                    var rounded = Math.round(value * 10000) / 10000;
+                    resultsContent.innerHTML += `
+                        <div class="result-item">
+                            ${abc[i]} = ${rounded}
+                        </div>
+                    `;
+                }
+                
+                resultsDiv.classList.add('show');
+            }
+        }
+
+        window.addEventListener("load", iniciar, false);
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>📐 Solucionador de Sistemas de Ecuaciones Lineales</h1>
+        
+        <div class="input-section">
+            <div class="input-group">
+                <label>📊 Número de ecuaciones/variables (1-26)</label>
+                <input type="number" id="texto" min="1" max="26" placeholder="Ej: 12" step="1">
+                <div class="quick-buttons">
+                    <button type="button" class="quick-btn" onclick="setSize(2)">2x2</button>
+                    <button type="button" class="quick-btn" onclick="setSize(3)">3x3</button>
+                    <button type="button" class="quick-btn" onclick="setSize(4)">4x4</button>
+                    <button type="button" class="quick-btn" onclick="setSize(5)">5x5</button>
+                    <button type="button" class="quick-btn" onclick="setSize(8)">8x8</button>
+                    <button type="button" class="quick-btn" onclick="setSize(10)">10x10</button>
+                    <button type="button" class="quick-btn" onclick="setSize(12)">12x12</button>
+                    <button type="button" class="quick-btn" onclick="setSize(15)">15x15</button>
+                    <button type="button" class="quick-btn" onclick="setSize(20)">20x20</button>
+                </div>
+            </div>
+            <button id="enviar">📝 Crear tabla</button>
+            <button id="procesar">🧮 Calcular solución</button>
+        </div>
+        
+        <div class="canvas-container">
+            <canvas id="lienzo" width="680" height="400"></canvas>
+        </div>
+        
+        <div class="info-panel">
+            <div class="controls-info">
+                <div class="control-card">
+                    <h4>🎮 Navegación</h4>
+                    <p>Flechas ← → ↑ ↓ para moverse</p>
+                </div>
+                <div class="control-card">
+                    <h4>📜 Scroll rápido</h4>
+                    <p>Shift + Flechas para desplazar la vista</p>
+                </div>
+                <div class="control-card">
+                    <h4>⌨️ Entrada de datos</h4>
+                    <p>Números (0-9), punto decimal, signo -</p>
+                </div>
+                <div class="control-card">
+                    <h4>✅ Confirmar</h4>
+                    <p>Enter para guardar y avanzar</p>
+                </div>
+                <div class="control-card">
+                    <h4>🗑️ Borrar</h4>
+                    <p>Backspace para corregir</p>
+                </div>
+            </div>
+            <div class="status">
+                💡 <strong>Novedad:</strong> Ahora puedes trabajar con hasta 26 variables.<br>
+                📜 Usa <strong>Shift + Flechas</strong> para desplazar la tabla si no ves todas las celdas.<br>
+                🎯 El cursor sigue automáticamente la celda seleccionada.
+            </div>
+        </div>
+        
+        <div id="errorMsg" class="error-message"></div>
+        
+        <div id="results" class="results">
+            <h3>✨ Solución del sistema ✨</h3>
+            <div id="resultsContent" class="results-grid"></div>
+        </div>
+    </div>
+</body>
+</html>
